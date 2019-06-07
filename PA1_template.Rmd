@@ -35,9 +35,14 @@ ActivityData <- read.csv("activity.csv")
 
 2 <b>Histogram of the total number of steps taken each day</b>
 
-```{r}
+```{r fig.height=4, fig.width=8}
 DailySteps<-with(ActivityData, tapply(steps, date, FUN = sum))
 hist(DailySteps,breaks = 10, main = "Histogram of Daily Steps", xlab = "Daily Steps")
+
+#Create Fig file
+png("HistogramDailySteps.png")
+hist(DailySteps,breaks = 10, main = "Histogram of Daily Steps", xlab = "Daily Steps")
+dev.off()
 ```
 
 3 <b>Mean and median number of steps taken each day
@@ -51,9 +56,14 @@ print(paste("Median Steps =",MedianSteps))
 
 4 <b>Time series plot of the average number of steps taken</b>
 
-```{r}
+```{r fig.height=4, fig.width=8}
 StepsbyInterval<-with(ActivityData, tapply(steps, interval, FUN = mean, na.rm = TRUE))
 plot(as.numeric(names(StepsbyInterval)),StepsbyInterval, main = "Average Steps by Time Interval", xlab = "Time Interval", ylab = "Steps", type = "l")
+
+#Create Fig File
+png("AverageStepsbyTimeInterval.png")
+plot(as.numeric(names(StepsbyInterval)),StepsbyInterval, main = "Average Steps by Time Interval", xlab = "Time Interval", ylab = "Steps", type = "l")
+dev.off()
 ```
 
 5 <b>The 5-minute interval that, on average, contains the maximum number of steps</b>
@@ -76,9 +86,14 @@ ImputedActivity <- ImputedActivity %>% group_by(interval) %>% mutate(steps = ife
 
 7 <b>Histogram of the total number of steps taken each day after missing values are imputed</b>
 
-```{r}
+```{r fig.height=4, fig.width=8}
 ImputedDailySteps <- with(ImputedActivity, tapply(steps, date, FUN = sum))
 hist(ImputedDailySteps, breaks = 10, main = "Histogram of Daily Steps with Imputed Values", xlab = "Daily Steps")
+
+#Create Fig File
+png("HistogramDailyStepsImputed.png")
+hist(ImputedDailySteps, breaks = 10, main = "Histogram of Daily Steps with Imputed Values", xlab = "Daily Steps")
+dev.off()
 ```
 ```{r}
 ImputedMeanSteps <- mean(ImputedDailySteps, na.rm = TRUE)
@@ -89,10 +104,16 @@ print(paste("Median Steps with Imputed Values =",ImputedMedianSteps))
 
 8 <b>Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends</b>
 
-```{r}
+```{r fig.height=4, fig.width=8}
 ImputedActivity <- mutate(ImputedActivity, DayofWeek = weekdays(as.Date(date, format = "%Y-%m-%d")), WeekPart = ifelse(DayofWeek %in%c("Saturday","Sunday"), "Weekend", "Weekday"))
 WeekendImputedStepsbyInterval <- aggregate(steps~interval+WeekPart, data = ImputedActivity, FUN = "mean")
 xyplot(steps~interval|WeekPart,WeekendImputedStepsbyInterval, layout = c(1,2), type = "l", xlab = "Interval", ylab = "Steps", main = "Average Steps per Interval for Each Part of the Week")
+
+#Create Fig File
+png("AverageStepsIntervalWeekPart.png")
+xyplot(steps~interval|WeekPart,WeekendImputedStepsbyInterval, layout = c(1,2), type = "l", xlab = "Interval", ylab = "Steps", main = "Average Steps per Interval for Each Part of the Week")
+dev.off()
+
 ```
 
 9 <b>All of the R code needed to reproduce the results (numbers, plots, etc.) in the report</b>
