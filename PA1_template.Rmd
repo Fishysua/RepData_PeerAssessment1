@@ -1,25 +1,98 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research Activity Monitoring Project"
+author: "Eric J Sullivan"
+date: "June 5, 2019"
+output: html_document
 ---
 
+###Activity Monitoring Project for Reproducible Research Week 1
 
-## Loading and preprocessing the data
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(plyr)
+library(dplyr)
+library(lattice)
+```
+
+1 <b>Code for reading in the dataset and/or processing the data</b>
+
+```{r}
+filename <- "ActivityMonitoring.zip"
+
+#Download Files
+if (!file.exists(filename)){
+  fileURL <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+  download.file(fileURL, filename, method="curl")
+}  
+
+#Unzip Files
+if (!file.exists("activity.csv")) { 
+  unzip(filename) 
+}
+
+ActivityData <- read.csv("activity.csv")
+```
+
+2 <b>Histogram of the total number of steps taken each day</b>
+
+```{r}
+DailySteps<-with(ActivityData, tapply(steps, date, FUN = sum))
+hist(DailySteps,breaks = 10, main = "Histogram of Daily Steps", xlab = "Daily Steps")
+```
+
+3 <b>Mean and median number of steps taken each day
+
+```{r}
+MeanSteps <- mean(DailySteps, na.rm = TRUE)
+MedianSteps <- median(DailySteps, na.rm = TRUE)
+print(paste("Mean Steps =",MeanSteps))
+print(paste("Median Steps =",MedianSteps))
+```
+
+4 <b>Time series plot of the average number of steps taken</b>
+
+```{r}
+StepsbyInterval<-with(ActivityData, tapply(steps, interval, FUN = mean, na.rm = TRUE))
+plot(as.numeric(names(StepsbyInterval)),StepsbyInterval, main = "Average Steps by Time Interval", xlab = "Time Interval", ylab = "Steps", type = "l")
+```
+
+5 <b>The 5-minute interval that, on average, contains the maximum number of steps</b>
+
+```{r}
+MaxInterval <- StepsbyInterval[max(StepsbyInterval,na.rm = TRUE) == StepsbyInterval]
+print(paste("The maximum average number of steps,", MaxInterval, ", occurs during interval", names(MaxInterval)))
+```
+
+6 <b>Code to describe and show a strategy for imputing missing data</b>
+
+Here missing data will be replaced by the mean steps for that interval.
+
+```{r}
+print(paste("The total number of missing data points is", sum(is.na(ActivityData$steps))))
+ImputedActivity <- ActivityData
+ImputedActivity <- ImputedActivity %>% group_by(interval) %>% mutate(steps = ifelse(is.na(steps), round(mean(steps, na.rm = TRUE)), steps))
+```
 
 
+7 <b>Histogram of the total number of steps taken each day after missing values are imputed</b>
 
-## What is mean total number of steps taken per day?
+```{r}
+ImputedDailySteps <- with(ImputedActivity, tapply(steps, date, FUN = sum))
+hist(ImputedDailySteps, breaks = 10, main = "Histogram of Daily Steps with Imputed Values", xlab = "Daily Steps")
+```
+```{r}
+ImputedMeanSteps <- mean(ImputedDailySteps, na.rm = TRUE)
+ImputedMedianSteps <- median(ImputedDailySteps, na.rm = TRUE)
+print(paste("Mean Steps with Imputed Values =",ImputedMeanSteps))
+print(paste("Median Steps with Imputed Values =",ImputedMedianSteps))
+```
 
+8 <b>Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends</b>
 
+```{r}
+ImputedActivity <- mutate(ImputedActivity, DayofWeek = weekdays(as.Date(date, format = "%Y-%m-%d")), WeekPart = ifelse(DayofWeek %in%c("Saturday","Sunday"), "Weekend", "Weekday"))
+WeekendImputedStepsbyInterval <- aggregate(steps~interval+WeekPart, data = ImputedActivity, FUN = "mean")
+xyplot(steps~interval|WeekPart,WeekendImputedStepsbyInterval, layout = c(1,2), type = "l", xlab = "Interval", ylab = "Steps", main = "Average Steps per Interval for Each Part of the Week")
+```
 
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+9 <b>All of the R code needed to reproduce the results (numbers, plots, etc.) in the report</b>
